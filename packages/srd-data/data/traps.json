@@ -1,0 +1,123 @@
+{
+  "_license": "Source: D&D System Reference Document v5.2.1, © Wizards of the Coast LLC, licensed under CC-BY 4.0.",
+  "traps": [
+    {
+      "id": "collapsing-roof",
+      "name": "Collapsing Roof",
+      "severity": "deadly",
+      "levelBands": [
+        { "minLevel": 1, "maxLevel": 4, "saveDc": 13, "damage": "2d10 bludgeoning" },
+        { "minLevel": 5, "maxLevel": 10, "saveDc": 15, "damage": "4d10 bludgeoning" },
+        { "minLevel": 11, "maxLevel": 16, "saveDc": 17, "damage": "10d10 bludgeoning" },
+        { "minLevel": 17, "maxLevel": 20, "saveDc": 19, "damage": "18d10 bludgeoning" }
+      ],
+      "trigger": "A creature crosses a trip wire",
+      "detectDc": 11,
+      "detectSkill": "Perception",
+      "summary": "Trip wire collapses an unstable ceiling section; area becomes difficult terrain."
+    },
+    {
+      "id": "falling-net",
+      "name": "Falling Net",
+      "severity": "nuisance",
+      "levelBands": [
+        { "minLevel": 1, "maxLevel": 4, "saveDc": 10, "damage": null },
+        { "minLevel": 5, "maxLevel": 10, "saveDc": 12, "damage": null },
+        { "minLevel": 11, "maxLevel": 16, "saveDc": 14, "damage": null },
+        { "minLevel": 17, "maxLevel": 20, "saveDc": 16, "damage": null }
+      ],
+      "trigger": "A creature crosses a trip wire",
+      "detectDc": 11,
+      "detectSkill": "Perception",
+      "summary": "Weighted net drops; failed save imposes Restrained until escaped (DC 10 Athletics)."
+    },
+    {
+      "id": "fire-casting-statue",
+      "name": "Fire-Casting Statue",
+      "severity": "deadly",
+      "levelBands": [
+        { "minLevel": 1, "maxLevel": 4, "saveDc": 15, "damage": "2d10 fire", "area": "15-foot cone" },
+        { "minLevel": 5, "maxLevel": 10, "saveDc": 15, "damage": "4d10 fire", "area": "30-foot cone" },
+        { "minLevel": 11, "maxLevel": 16, "saveDc": 15, "damage": "10d10 fire", "area": "60-foot cone" },
+        { "minLevel": 17, "maxLevel": 20, "saveDc": 15, "damage": "18d10 fire", "area": "120-foot cone" }
+      ],
+      "trigger": "A creature moves onto a pressure plate",
+      "detectDc": 15,
+      "detectSkill": "Perception",
+      "summary": "Statue exhales magical flame in a cone; resets next turn."
+    },
+    {
+      "id": "hidden-pit",
+      "name": "Hidden Pit",
+      "severity": "nuisance",
+      "levelBands": [
+        { "minLevel": 1, "maxLevel": 4, "saveDc": null, "damage": "1d6 bludgeoning", "depth": "10 feet" },
+        { "minLevel": 5, "maxLevel": 10, "saveDc": null, "damage": "3d6 bludgeoning", "depth": "30 feet" },
+        { "minLevel": 11, "maxLevel": 16, "saveDc": null, "damage": "6d6 bludgeoning", "depth": "60 feet" },
+        { "minLevel": 17, "maxLevel": 20, "saveDc": null, "damage": "12d6 bludgeoning", "depth": "120 feet" }
+      ],
+      "trigger": "A creature moves onto the pit's lid",
+      "detectDc": 15,
+      "detectSkill": "Investigation",
+      "summary": "Hinged lid drops victim into a pit."
+    },
+    {
+      "id": "poisoned-darts",
+      "name": "Poisoned Darts",
+      "severity": "deadly",
+      "levelBands": [
+        { "minLevel": 1, "maxLevel": 4, "saveDc": 13, "damage": "1d6 poison per dart (1d3 darts)" },
+        { "minLevel": 5, "maxLevel": 10, "saveDc": 13, "damage": "2d6 poison per dart" },
+        { "minLevel": 11, "maxLevel": 16, "saveDc": 13, "damage": "4d6 poison per dart" },
+        { "minLevel": 17, "maxLevel": 20, "saveDc": 13, "damage": "7d6 poison per dart" }
+      ],
+      "trigger": "A creature moves onto a pressure plate",
+      "detectDc": 15,
+      "detectSkill": "Perception",
+      "summary": "Poisoned darts fire from wall tubes; resets up to three times."
+    },
+    {
+      "id": "poisoned-needle",
+      "name": "Poisoned Needle",
+      "severity": "nuisance",
+      "levelBands": [
+        { "minLevel": 1, "maxLevel": 4, "saveDc": 11, "damage": "1d10 poison" },
+        { "minLevel": 5, "maxLevel": 10, "saveDc": 13, "damage": "2d10 poison" },
+        { "minLevel": 11, "maxLevel": 16, "saveDc": 15, "damage": "4d10 poison" },
+        { "minLevel": 17, "maxLevel": 20, "saveDc": 17, "damage": "10d10 poison" }
+      ],
+      "trigger": "Lock opened improperly or trap not disarmed",
+      "detectDc": 15,
+      "detectSkill": "Perception",
+      "summary": "Needle in a lock poisons the opener."
+    },
+    {
+      "id": "rolling-stone",
+      "name": "Rolling Stone",
+      "severity": "deadly",
+      "levelBands": [
+        { "minLevel": 11, "maxLevel": 16, "saveDc": 15, "damage": "10d10 bludgeoning" },
+        { "minLevel": 17, "maxLevel": 20, "saveDc": 15, "damage": "10d10 bludgeoning", "note": "nuisance at this tier" }
+      ],
+      "trigger": "A creature moves onto a pressure plate",
+      "detectDc": 15,
+      "detectSkill": "Investigation",
+      "summary": "5-foot stone orb rolls 60 feet per round until stopped."
+    },
+    {
+      "id": "spiked-pit",
+      "name": "Spiked Pit",
+      "severity": "deadly",
+      "levelBands": [
+        { "minLevel": 1, "maxLevel": 4, "saveDc": null, "damage": "1d6 bludgeoning + 2d8 piercing", "depth": "10 feet" },
+        { "minLevel": 5, "maxLevel": 10, "saveDc": null, "damage": "3d6 bludgeoning + 3d8 piercing", "depth": "30 feet" },
+        { "minLevel": 11, "maxLevel": 16, "saveDc": null, "damage": "6d6 bludgeoning + 8d8 piercing", "depth": "60 feet" },
+        { "minLevel": 17, "maxLevel": 20, "saveDc": null, "damage": "12d6 bludgeoning + 13d8 piercing", "depth": "120 feet" }
+      ],
+      "trigger": "A creature moves onto the pit's lid",
+      "detectDc": 15,
+      "detectSkill": "Investigation",
+      "summary": "Hidden pit with sharpened spikes at the bottom."
+    }
+  ]
+}

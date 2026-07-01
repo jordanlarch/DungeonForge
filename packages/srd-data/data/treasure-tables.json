@@ -1,0 +1,33 @@
+{
+  "_license": "Source: D&D System Reference Document v5.2.1, © Wizards of the Coast LLC, licensed under CC-BY 4.0. Original treasure tables by DungeonForge contributors, CC-BY 4.0.",
+  "rarityValues": {
+    "common": 100,
+    "uncommon": 400,
+    "rare": 4000,
+    "veryRare": 40000,
+    "legendary": 200000
+  },
+  "hoardsByPartyLevel": {
+    "1": { "coinsMin": 10, "coinsMax": 100, "magicItemRarities": ["common"] },
+    "2": { "coinsMin": 25, "coinsMax": 250, "magicItemRarities": ["common"] },
+    "3": { "coinsMin": 50, "coinsMax": 500, "magicItemRarities": ["common", "uncommon"] },
+    "4": { "coinsMin": 100, "coinsMax": 800, "magicItemRarities": ["common", "uncommon"] },
+    "5": { "coinsMin": 200, "coinsMax": 1500, "magicItemRarities": ["uncommon"] },
+    "6": { "coinsMin": 400, "coinsMax": 2500, "magicItemRarities": ["uncommon"] },
+    "7": { "coinsMin": 600, "coinsMax": 3500, "magicItemRarities": ["uncommon", "rare"] },
+    "8": { "coinsMin": 800, "coinsMax": 5000, "magicItemRarities": ["uncommon", "rare"] },
+    "9": { "coinsMin": 1200, "coinsMax": 7000, "magicItemRarities": ["rare"] },
+    "10": { "coinsMin": 1500, "coinsMax": 9000, "magicItemRarities": ["rare"] },
+    "11": { "coinsMin": 2000, "coinsMax": 12000, "magicItemRarities": ["rare", "veryRare"] },
+    "12": { "coinsMin": 2500, "coinsMax": 15000, "magicItemRarities": ["rare", "veryRare"] },
+    "13": { "coinsMin": 3500, "coinsMax": 20000, "magicItemRarities": ["veryRare"] },
+    "14": { "coinsMin": 4500, "coinsMax": 25000, "magicItemRarities": ["veryRare"] },
+    "15": { "coinsMin": 6000, "coinsMax": 35000, "magicItemRarities": ["veryRare", "legendary"] },
+    "16": { "coinsMin": 8000, "coinsMax": 45000, "magicItemRarities": ["veryRare", "legendary"] },
+    "17": { "coinsMin": 10000, "coinsMax": 55000, "magicItemRarities": ["legendary"] },
+    "18": { "coinsMin": 12000, "coinsMax": 65000, "magicItemRarities": ["legendary"] },
+    "19": { "coinsMin": 15000, "coinsMax": 80000, "magicItemRarities": ["legendary"] },
+    "20": { "coinsMin": 20000, "coinsMax": 100000, "magicItemRarities": ["legendary"] }
+  },
+  "coinTypes": ["cp", "sp", "ep", "gp", "pp"]
+}

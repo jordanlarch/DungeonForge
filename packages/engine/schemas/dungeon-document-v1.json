@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonforge.dev/schemas/dungeon-document-v1.json",
+  "title": "DungeonDocument",
+  "type": "object",
+  "required": ["schemaVersion", "metadata", "grid", "rooms", "corridors", "entranceRoomId"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "seed",
+        "name",
+        "partyLevel",
+        "partySize",
+        "difficulty",
+        "motifId",
+        "motifName",
+        "generatedAt",
+        "srdVersion",
+        "license"
+      ]
+    },
+    "grid": {
+      "type": "object",
+      "required": ["width", "height", "cellSizeFeet"]
+    },
+    "rooms": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/room" }
+    },
+    "corridors": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/corridor" }
+    },
+    "entranceRoomId": { "type": "string" }
+  },
+  "$defs": {
+    "room": {
+      "type": "object",
+      "required": ["id", "number", "name", "bounds", "tiles", "content"]
+    },
+    "corridor": {
+      "type": "object",
+      "required": ["id", "fromRoomId", "toRoomId", "door", "points"]
+    }
+  }
+}

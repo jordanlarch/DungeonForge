@@ -1,0 +1,15 @@
+{
+  "name": "@dungeonforge/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "dungeonforge": "./bin/dungeonforge.js"
+  },
+  "scripts": {
+    "generate": "node bin/dungeonforge.js generate --seed 42 --level 3"
+  },
+  "dependencies": {
+    "@dungeonforge/engine": "*"
+  }
+}

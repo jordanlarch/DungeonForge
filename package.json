@@ -1,0 +1,21 @@
+{
+  "name": "dungeonforge",
+  "private": true,
+  "version": "0.1.0",
+  "description": "SRD 5.2.1-grounded procedural dungeon generator",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @dungeonforge/engine && npm run build -w @dungeonforge/web",
+    "build:srd": "python3 scripts/build-srd-data.py",
+    "dev": "npm run dev -w @dungeonforge/web",
+    "generate": "npm run generate -w @dungeonforge/cli",
+    "test": "npm run test -w @dungeonforge/engine",
+    "typecheck": "npm run typecheck -w @dungeonforge/engine && npm run typecheck -w @dungeonforge/web"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

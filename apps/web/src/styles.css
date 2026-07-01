@@ -1,0 +1,239 @@
+:root {
+  color-scheme: dark;
+  --bg: #0f1218;
+  --bg-panel: #171c26;
+  --border: #2a3344;
+  --text: #e8e4dc;
+  --muted: #9aa3b2;
+  --accent: #c9a227;
+  --accent-dim: #8a7020;
+  --danger: #c45c5c;
+  --success: #6aab6a;
+  font-family: "Source Serif 4", Georgia, serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(201, 162, 39, 0.08), transparent 40%),
+    radial-gradient(circle at 80% 0%, rgba(100, 120, 180, 0.12), transparent 35%),
+    var(--bg);
+  color: var(--text);
+}
+
+.app {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.25rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+h1 {
+  margin: 0;
+  font-family: Cinzel, serif;
+  font-size: 2.4rem;
+  letter-spacing: 0.04em;
+}
+
+.subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+}
+
+.header-actions button,
+.controls button,
+.tabs button {
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 0.5rem 0.85rem;
+}
+
+.header-actions button:hover,
+.controls button:hover,
+.tabs button:hover {
+  border-color: var(--accent-dim);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.controls h2,
+.output h2 {
+  margin: 0 0 1rem;
+  font-family: Cinzel, serif;
+  font-size: 1.1rem;
+}
+
+.controls label {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.9rem;
+}
+
+.controls input,
+.controls select {
+  width: 100%;
+  font: inherit;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.45rem 0.55rem;
+}
+
+.value {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.export-row {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.dungeon-title h2 {
+  margin: 0;
+  font-family: Cinzel, serif;
+}
+
+.dungeon-title p {
+  margin: 0.25rem 0 1rem;
+  color: var(--muted);
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tabs button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.ascii-map,
+.json-view {
+  margin: 0;
+  padding: 1rem;
+  background: #0a0d12;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
+  line-height: 1.15;
+  max-height: 70vh;
+}
+
+.room-key {
+  display: grid;
+  gap: 0.75rem;
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.room-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.room-card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.room-card p,
+.room-card ul {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+}
+
+.badge {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+
+.badge-encounter {
+  color: var(--danger);
+  border-color: rgba(196, 92, 92, 0.5);
+}
+
+.badge-trap {
+  color: var(--accent);
+  border-color: rgba(201, 162, 39, 0.5);
+}
+
+.badge-treasure {
+  color: var(--success);
+  border-color: rgba(106, 171, 106, 0.5);
+}
+
+.badge-entrance {
+  color: #7eb8ff;
+  border-color: rgba(126, 184, 255, 0.5);
+}
+
+.trap,
+.treasure {
+  font-size: 0.9rem;
+}
+
+.footer {
+  margin-top: 1.5rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

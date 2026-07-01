@@ -1,0 +1,14 @@
+{
+  "name": "@dungeonforge/srd-data",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./monsters": "./data/monsters.json",
+    "./traps": "./data/traps.json",
+    "./magic-items": "./data/magic-items.json",
+    "./encounter-xp": "./data/encounter-xp.json",
+    "./treasure-tables": "./data/treasure-tables.json",
+    "./motifs": "./data/motifs.json"
+  }
+}
