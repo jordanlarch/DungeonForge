@@ -1,74 +1,138 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import type {
+  DungeonDocument,
+  EncounterDifficulty,
+  GenerationOptions,
+  MapTheme,
+} from "@dungeonforge/engine";
 import {
   generateDungeon,
+  DEFAULT_GENERATION_OPTIONS,
+  rerollRoomContent,
+  loadSrdDatabase,
   exportJson,
   exportMarkdown,
   downloadFilename,
-  type EncounterDifficulty,
-  type GenerationOptions,
 } from "@dungeonforge/engine";
+import {
+  renderDungeonSvg,
+  svgToPngBlob,
+  downloadBlob,
+} from "@dungeonforge/renderer";
+import {
+  setAnthropicApiKey,
+  getAnthropicApiKey,
+  createNarrativeProvider,
+  buildRoomContext,
+} from "@dungeonforge/narrative";
+import "./styles.css";
 
 const MOTIFS = [
-  "abandoned",
-  "undead",
-  "vermin",
-  "underdark",
-  "arcane",
-  "giant",
-  "aquatic",
-  "infernal",
-];
-
-const DENSITIES: GenerationOptions["density"][] = [
-  "sparse",
-  "scattered",
-  "dense",
+  "abandoned", "undead", "vermin", "underdark", "arcane", "giant", "aquatic", "infernal",
 ];
 
 function downloadText(filename: string, content: string, mime: string) {
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+  downloadBlob(new Blob([content], { type: mime }), filename);
 }
 
 export default function App() {
-  const [seed, setSeed] = useState(42);
-  const [partyLevel, setPartyLevel] = useState(3);
-  const [partySize, setPartySize] = useState(4);
-  const [difficulty, setDifficulty] = useState<EncounterDifficulty>("moderate");
-  const [roomCount, setRoomCount] = useState(12);
-  const [motifId, setMotifId] = useState("abandoned");
-  const [density, setDensity] = useState<GenerationOptions["density"]>("scattered");
-  const [tab, setTab] = useState<"map" | "key" | "json">("map");
+  const [opts, setOpts] = useState<GenerationOptions>({ ...DEFAULT_GENERATION_OPTIONS });
+  const [dungeon, setDungeon] = useState<DungeonDocument | null>(null);
+  const [activeFloor, setActiveFloor] = useState(1);
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState(getAnthropicApiKey() ?? "");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [view, setView] = useState({ x: 0, y: 0, scale: 1 });
 
-  const result = useMemo(
-    () =>
-      generateDungeon({
-        seed,
-        partyLevel,
-        partySize,
-        difficulty,
-        roomCount,
-        motifId,
-        density,
-      }),
-    [seed, partyLevel, partySize, difficulty, roomCount, motifId, density]
-  );
+  const selectedRoom = dungeon?.rooms.find((r) => r.id === selectedRoomId) ?? null;
 
-  const markdown = useMemo(
-    () => exportMarkdown(result.dungeon, result.asciiMap),
-    [result]
-  );
+  const svg = useMemo(() => {
+    if (!dungeon) return "";
+    return renderDungeonSvg(dungeon, {
+      activeFloor,
+      selectedRoomId,
+      theme: opts.mapTheme,
+    });
+  }, [dungeon, activeFloor, selectedRoomId, opts.mapTheme]);
 
-  const json = useMemo(() => exportJson(result.dungeon), [result.dungeon]);
+  const handleGenerate = () => {
+    const result = generateDungeon(opts);
+    setDungeon(result.dungeon);
+    setActiveFloor(1);
+    setSelectedRoomId(null);
+    setView({ x: 0, y: 0, scale: 1 });
+  };
 
-  const rerollSeed = useCallback(() => {
-    setSeed(Math.floor(Math.random() * 1_000_000));
-  }, []);
+  const patchOpt = <K extends keyof GenerationOptions>(key: K, value: GenerationOptions[K]) => {
+    setOpts((o) => ({ ...o, [key]: value }));
+  };
+
+  const handleRerollRoom = () => {
+    if (!dungeon || !selectedRoomId) return;
+    const db = loadSrdDatabase();
+    const updated = rerollRoomContent(dungeon, selectedRoomId, opts, db, Date.now());
+    setDungeon({ ...dungeon, rooms: updated });
+  };
+
+  const handleEnhanceRoom = async () => {
+    if (!dungeon || !selectedRoom) return;
+    const provider = createNarrativeProvider();
+    if (!provider) {
+      setShowSettings(true);
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const ctx = buildRoomContext(
+        dungeon.metadata.name,
+        dungeon.metadata.motifName,
+        selectedRoom
+      );
+      const text = await provider.enhanceRoom(ctx);
+      setDungeon({
+        ...dungeon,
+        rooms: dungeon.rooms.map((r) =>
+          r.id === selectedRoom.id
+            ? {
+                ...r,
+                content: {
+                  ...r.content,
+                  narrative: {
+                    ...r.content.narrative,
+                    template: r.content.narrative?.template ?? "",
+                    aiEnhanced: text,
+                  },
+                },
+              }
+            : r
+        ),
+      });
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "AI enhancement failed");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleExportPng = async () => {
+    if (!svg || !dungeon) return;
+    const blob = await svgToPngBlob(svg);
+    downloadBlob(blob, downloadFilename(dungeon, "png"));
+  };
+
+  const handleExportSvg = () => {
+    if (!svg || !dungeon) return;
+    downloadText(downloadFilename(dungeon, "svg"), svg, "image/svg+xml");
+  };
+
+  const handleRoomClick = (roomId: string) => {
+    setSelectedRoomId(roomId);
+  };
+
+  const cellPx = 50;
+  const mapW = (dungeon?.grid.width ?? 60) * cellPx;
+  const mapH = (dungeon?.grid.height ?? 40) * cellPx;
 
   return (
     <div className="app">
@@ -76,195 +140,193 @@ export default function App() {
         <div>
           <p className="eyebrow">SRD 5.2.1 · CC-BY 4.0</p>
           <h1>DungeonForge</h1>
-          <p className="subtitle">Procedural dungeons with SRD encounters, traps, and treasure.</p>
         </div>
         <div className="header-actions">
-          <button type="button" onClick={rerollSeed}>
+          <button type="button" onClick={() => setShowSettings(true)}>Settings</button>
+          <button type="button" onClick={() => patchOpt("seed", Math.floor(Math.random() * 1e6))}>
             New Seed
+          </button>
+          <button type="button" className="primary" onClick={handleGenerate}>
+            Generate
           </button>
         </div>
       </header>
 
       <div className="layout">
         <aside className="panel controls">
-          <h2>Generate</h2>
-          <label>
-            Seed
-            <input
-              type="number"
-              value={seed}
-              onChange={(e) => setSeed(Number(e.target.value))}
-            />
+          <h2>Generator</h2>
+          <label>Seed<input type="number" value={opts.seed} onChange={(e) => patchOpt("seed", +e.target.value)} /></label>
+          <label>Party Level ({opts.partyLevel})
+            <input type="range" min={1} max={20} value={opts.partyLevel} onChange={(e) => patchOpt("partyLevel", +e.target.value)} />
           </label>
-          <label>
-            Party Level
-            <input
-              type="range"
-              min={1}
-              max={20}
-              value={partyLevel}
-              onChange={(e) => setPartyLevel(Number(e.target.value))}
-            />
-            <span className="value">{partyLevel}</span>
-          </label>
-          <label>
-            Party Size
-            <input
-              type="number"
-              min={1}
-              max={8}
-              value={partySize}
-              onChange={(e) => setPartySize(Number(e.target.value))}
-            />
-          </label>
-          <label>
-            Difficulty
-            <select
-              value={difficulty}
-              onChange={(e) => setDifficulty(e.target.value as EncounterDifficulty)}
-            >
+          <label>Party Size<input type="number" min={1} max={8} value={opts.partySize} onChange={(e) => patchOpt("partySize", +e.target.value)} /></label>
+          <label>Difficulty
+            <select value={opts.difficulty} onChange={(e) => patchOpt("difficulty", e.target.value as EncounterDifficulty)}>
               <option value="low">Low</option>
               <option value="moderate">Moderate</option>
               <option value="high">High</option>
             </select>
           </label>
-          <label>
-            Rooms
-            <input
-              type="range"
-              min={6}
-              max={24}
-              value={roomCount}
-              onChange={(e) => setRoomCount(Number(e.target.value))}
-            />
-            <span className="value">{roomCount}</span>
+          <label>Rooms ({opts.roomCount})
+            <input type="range" min={6} max={30} value={opts.roomCount} onChange={(e) => patchOpt("roomCount", +e.target.value)} />
           </label>
-          <label>
-            Motif
-            <select value={motifId} onChange={(e) => setMotifId(e.target.value)}>
-              {MOTIFS.map((m) => (
-                <option key={m} value={m}>
-                  {m.charAt(0).toUpperCase() + m.slice(1)}
-                </option>
-              ))}
+          <label>Floors ({opts.floorCount})
+            <input type="range" min={1} max={5} value={opts.floorCount} onChange={(e) => patchOpt("floorCount", +e.target.value)} />
+          </label>
+          <label>Motif
+            <select value={opts.motifId} onChange={(e) => patchOpt("motifId", e.target.value)}>
+              {MOTIFS.map((m) => <option key={m} value={m}>{m}</option>)}
             </select>
           </label>
-          <label>
-            Density
-            <select
-              value={density}
-              onChange={(e) =>
-                setDensity(e.target.value as GenerationOptions["density"])
-              }
-            >
-              {DENSITIES.map((d) => (
-                <option key={d} value={d}>
-                  {d.charAt(0).toUpperCase() + d.slice(1)}
-                </option>
-              ))}
+          <label>Map theme
+            <select value={opts.mapTheme} onChange={(e) => patchOpt("mapTheme", e.target.value as MapTheme)}>
+              <option value="parchment">Parchment</option>
+              <option value="darkStone">Dark stone</option>
             </select>
           </label>
-
-          <div className="export-row">
-            <button
-              type="button"
-              onClick={() =>
-                downloadText(
-                  downloadFilename(result.dungeon, "json"),
-                  json,
-                  "application/json"
-                )
-              }
-            >
-              Export JSON
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                downloadText(
-                  downloadFilename(result.dungeon, "md"),
-                  markdown,
-                  "text/markdown"
-                )
-              }
-            >
-              Export Markdown
-            </button>
-          </div>
+          <label>Layout density
+            <select value={opts.density} onChange={(e) => patchOpt("density", e.target.value as GenerationOptions["density"])}>
+              <option value="sparse">Sparse</option>
+              <option value="scattered">Scattered</option>
+              <option value="dense">Dense</option>
+            </select>
+          </label>
+          <h3>Stocking</h3>
+          <label>Encounters ({opts.encounterDensity}%)
+            <input type="range" min={0} max={60} value={opts.encounterDensity} onChange={(e) => patchOpt("encounterDensity", +e.target.value)} />
+          </label>
+          <label>Traps ({opts.trapDensity}%)
+            <input type="range" min={0} max={40} value={opts.trapDensity} onChange={(e) => patchOpt("trapDensity", +e.target.value)} />
+          </label>
+          <label>Treasure ({opts.treasureDensity}%)
+            <input type="range" min={0} max={40} value={opts.treasureDensity} onChange={(e) => patchOpt("treasureDensity", +e.target.value)} />
+          </label>
+          <label>NPCs ({opts.npcDensity}%)
+            <input type="range" min={0} max={30} value={opts.npcDensity} onChange={(e) => patchOpt("npcDensity", +e.target.value)} />
+          </label>
+          <label>Secret doors ({Math.round(opts.secretDoorChance * 100)}%)
+            <input type="range" min={0} max={50} value={opts.secretDoorChance * 100} onChange={(e) => patchOpt("secretDoorChance", +e.target.value / 100)} />
+          </label>
+          <label>Hazards ({Math.round(opts.hazardChance * 100)}%)
+            <input type="range" min={0} max={50} value={opts.hazardChance * 100} onChange={(e) => patchOpt("hazardChance", +e.target.value / 100)} />
+          </label>
         </aside>
 
-        <main className="panel output">
-          <div className="dungeon-title">
-            <h2>{result.dungeon.metadata.name}</h2>
-            <p>
-              {result.dungeon.metadata.motifName} · {result.dungeon.rooms.length} rooms ·{" "}
-              {result.dungeon.corridors.length} corridors
-            </p>
-          </div>
-
-          <div className="tabs">
-            {(["map", "key", "json"] as const).map((t) => (
-              <button
-                key={t}
-                type="button"
-                className={tab === t ? "active" : ""}
-                onClick={() => setTab(t)}
+        <main className="panel editor-panel">
+          {dungeon ? (
+            <>
+              <div className="editor-toolbar">
+                <h2>{dungeon.metadata.name}</h2>
+                <div className="floor-tabs">
+                  {dungeon.floors.map((f) => (
+                    <button key={f.number} type="button" className={activeFloor === f.number ? "active" : ""} onClick={() => setActiveFloor(f.number)}>
+                      {f.name}
+                    </button>
+                  ))}
+                </div>
+                <div className="toolbar-actions">
+                  <button type="button" onClick={() => setView((v) => ({ ...v, scale: Math.min(2, v.scale + 0.1) }))}>+</button>
+                  <button type="button" onClick={() => setView((v) => ({ ...v, scale: Math.max(0.3, v.scale - 0.1) }))}>−</button>
+                  <button type="button" onClick={handleExportSvg}>SVG</button>
+                  <button type="button" onClick={handleExportPng}>PNG</button>
+                  <button type="button" onClick={() => downloadText(downloadFilename(dungeon, "json"), exportJson(dungeon), "application/json")}>JSON</button>
+                  <button type="button" onClick={() => downloadText(downloadFilename(dungeon, "md"), exportMarkdown(dungeon), "text/markdown")}>MD</button>
+                </div>
+              </div>
+              <div
+                className="map-viewport"
+                onWheel={(e) => {
+                  e.preventDefault();
+                  setView((v) => ({ ...v, scale: Math.max(0.2, Math.min(3, v.scale - e.deltaY * 0.001)) }));
+                }}
               >
-                {t === "map" ? "Map" : t === "key" ? "Room Key" : "JSON"}
-              </button>
-            ))}
-          </div>
-
-          {tab === "map" && (
-            <pre className="ascii-map" aria-label="ASCII dungeon map">
-              {result.asciiMap}
-            </pre>
-          )}
-          {tab === "key" && (
-            <div className="room-key">
-              {result.dungeon.rooms
-                .slice()
-                .sort((a, b) => a.number - b.number)
-                .map((room) => (
-                  <article key={room.id} className="room-card">
-                    <h3>
-                      {room.number}. {room.name}
-                      <span className={`badge badge-${room.content.role}`}>
-                        {room.content.role}
-                      </span>
-                    </h3>
-                    <p>{room.content.description}</p>
-                    {room.content.encounter && (
-                      <ul>
-                        {room.content.encounter.monsters.map((m) => (
-                          <li key={m.id}>
-                            {m.count}× {m.name} (CR {m.cr})
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    {room.content.trap && (
-                      <p className="trap">
-                        <strong>{room.content.trap.name}</strong> — {room.content.trap.summary}
-                      </p>
-                    )}
-                    {room.content.treasure && (
-                      <p className="treasure">{room.content.treasure.description}</p>
-                    )}
-                  </article>
-                ))}
+                <div
+                  className="map-transform"
+                  style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}
+                >
+                  <div
+                    className="map-hit-layer"
+                    style={{ width: mapW, height: mapH, position: "relative" }}
+                    dangerouslySetInnerHTML={{ __html: svg }}
+                  />
+                  {dungeon.rooms.filter((r) => r.floor === activeFloor).map((room) => (
+                    <button
+                      key={room.id}
+                      type="button"
+                      className={`room-hit ${selectedRoomId === room.id ? "selected" : ""}`}
+                      style={{
+                        left: room.bounds.x * cellPx,
+                        top: room.bounds.y * cellPx,
+                        width: room.bounds.width * cellPx,
+                        height: room.bounds.height * cellPx,
+                      }}
+                      onClick={() => handleRoomClick(room.id)}
+                      aria-label={`Room ${room.number}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="empty-state">
+              <p>Configure options and click <strong>Generate</strong> to create a dungeon.</p>
             </div>
           )}
-          {tab === "json" && <pre className="json-view">{json}</pre>}
         </main>
+
+        <aside className="panel key-panel">
+          <h2>Room Key</h2>
+          {dungeon?.metadata.hook && <p className="hook">{dungeon.metadata.hook}</p>}
+          {selectedRoom ? (
+            <article className="room-detail">
+              <h3>#{selectedRoom.number} · {selectedRoom.content.role}</h3>
+              {selectedRoom.content.narrative?.template && <p className="narrative">{selectedRoom.content.narrative.template}</p>}
+              {selectedRoom.content.narrative?.aiEnhanced && <p className="ai-narrative">{selectedRoom.content.narrative.aiEnhanced}</p>}
+              <p>{selectedRoom.content.description}</p>
+              {selectedRoom.content.hazard && <p><strong>Hazard:</strong> {selectedRoom.content.hazard.name}</p>}
+              {selectedRoom.content.encounter && (
+                <ul>{selectedRoom.content.encounter.monsters.map((m) => <li key={m.id}>{m.count}× {m.name}</li>)}</ul>
+              )}
+              {selectedRoom.content.trap && <p><strong>Trap:</strong> {selectedRoom.content.trap.name}</p>}
+              {selectedRoom.content.treasure && <p><strong>Treasure:</strong> {selectedRoom.content.treasure.description}</p>}
+              {selectedRoom.content.npc && (
+                <>
+                  <p><strong>{selectedRoom.content.npc.name}</strong> — {selectedRoom.content.npc.personality}</p>
+                  {selectedRoom.content.npc.dialogue.map((d) => <blockquote key={d}>{d}</blockquote>)}
+                </>
+              )}
+              <div className="room-actions">
+                <button type="button" onClick={handleRerollRoom}>Reroll contents</button>
+                <button type="button" onClick={handleEnhanceRoom} disabled={aiLoading}>
+                  {aiLoading ? "Enhancing…" : "Enhance with AI"}
+                </button>
+              </div>
+            </article>
+          ) : (
+            <p className="muted">Click a room on the map to inspect and edit.</p>
+          )}
+        </aside>
       </div>
 
-      <footer className="footer">
-        <p>
-          Content from the D&amp;D System Reference Document v5.2.1 © Wizards of the Coast LLC,
-          licensed under CC-BY 4.0.
-        </p>
-      </footer>
+      {showSettings && (
+        <div className="modal-backdrop" onClick={() => setShowSettings(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Settings</h2>
+            <p>Anthropic API key (stored in browser localStorage only — never sent to our servers).</p>
+            <input
+              type="password"
+              value={apiKeyInput}
+              onChange={(e) => setApiKeyInput(e.target.value)}
+              placeholder="sk-ant-..."
+            />
+            <div className="modal-actions">
+              <button type="button" onClick={() => { setAnthropicApiKey(apiKeyInput); setShowSettings(false); }}>Save</button>
+              <button type="button" onClick={() => setShowSettings(false)}>Cancel</button>
+            </div>
+            <p className="warn">If you shared your key in chat, rotate it at console.anthropic.com.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

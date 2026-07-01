@@ -1,9 +1,19 @@
-import type { CorridorEdge, DoorType, GenerationOptions, Point, Rect, RoomNode } from "./types.js";
+import type {
+  CorridorEdge,
+  DoorType,
+  FloorInfo,
+  GenerationOptions,
+  Point,
+  Rect,
+  RoomNode,
+  StairLink,
+} from "./types.js";
 import { SeededRandom } from "./utils.js";
 
 interface RawRoom {
   id: string;
   bounds: Rect;
+  floor: number;
 }
 
 const DENSITY_ROOM_COUNTS: Record<GenerationOptions["density"], [number, number]> = {
@@ -15,6 +25,8 @@ const DENSITY_ROOM_COUNTS: Record<GenerationOptions["density"], [number, number]
 export interface TopologyResult {
   rooms: RoomNode[];
   corridors: CorridorEdge[];
+  stairs: StairLink[];
+  floors: FloorInfo[];
   entranceRoomId: string;
   occupied: Set<string>;
 }
@@ -42,16 +54,13 @@ function carveRoomTiles(bounds: Rect): Point[] {
   return tiles;
 }
 
-function placeRooms(
+function placeRoomsOnFloor(
   rng: SeededRandom,
-  options: GenerationOptions
+  options: GenerationOptions,
+  floor: number,
+  count: number,
+  idOffset: number
 ): RawRoom[] {
-  const [minFactor, maxFactor] = DENSITY_ROOM_COUNTS[options.density];
-  const targetCount = Math.round(
-    options.roomCount * rng.next() * (maxFactor - minFactor) + options.roomCount * minFactor
-  );
-  const count = Math.max(5, Math.min(40, targetCount));
-
   const rooms: RawRoom[] = [];
   const maxAttempts = count * 40;
 
@@ -62,14 +71,22 @@ function placeRooms(
     const y = rng.int(1, options.gridHeight - height - 2);
     const bounds: Rect = { x, y, width, height };
 
-    if (rooms.some((r) => rectOverlaps(r.bounds, bounds))) {
-      continue;
-    }
+    if (rooms.some((r) => rectOverlaps(r.bounds, bounds))) continue;
 
-    rooms.push({ id: `room-${rooms.length + 1}`, bounds });
+    rooms.push({
+      id: `f${floor}-room-${idOffset + rooms.length + 1}`,
+      bounds,
+      floor,
+    });
   }
 
   return rooms;
+}
+
+interface WeightedEdge {
+  a: number;
+  b: number;
+  dist: number;
 }
 
 function roomCenter(room: RawRoom): Point {
@@ -79,16 +96,8 @@ function roomCenter(room: RawRoom): Point {
   };
 }
 
-interface WeightedEdge {
-  a: number;
-  b: number;
-  dist: number;
-}
-
 function connectRooms(rawRooms: RawRoom[], rng: SeededRandom): WeightedEdge[] {
-  if (rawRooms.length <= 1) {
-    return [];
-  }
+  if (rawRooms.length <= 1) return [];
 
   const centers = rawRooms.map(roomCenter);
   const weighted: WeightedEdge[] = [];
@@ -120,23 +129,16 @@ function connectRooms(rawRooms: RawRoom[], rng: SeededRandom): WeightedEdge[] {
   }
 
   const extraCount = rng.int(0, Math.max(1, Math.floor(rawRooms.length / 4)));
-  const extra: WeightedEdge[] = [];
   for (let i = 0; i < extraCount; i++) {
     const a = rng.int(0, rawRooms.length - 1);
     const b = rng.int(0, rawRooms.length - 1);
-    if (a !== b) {
-      extra.push({ a, b, dist: 0 });
-    }
+    if (a !== b) mst.push({ a, b, dist: 0 });
   }
 
-  return [...mst, ...extra];
+  return mst;
 }
 
-function carveCorridor(
-  from: Point,
-  to: Point,
-  occupied: Set<string>
-): Point[] {
+function carveCorridor(from: Point, to: Point, occupied: Set<string>): Point[] {
   const points: Point[] = [];
   let x = from.x;
   let y = from.y;
@@ -156,11 +158,9 @@ function carveCorridor(
   return points;
 }
 
-function pickDoorType(rng: SeededRandom): DoorType {
-  const roll = rng.next();
-  if (roll < 0.65) return "open";
-  if (roll < 0.9) return "closed";
-  return "secret";
+function pickDoorType(rng: SeededRandom, secretChance: number): DoorType {
+  if (rng.chance(secretChance)) return "secret";
+  return rng.chance(0.7) ? "open" : "closed";
 }
 
 function findEdgePoint(room: RawRoom, toward: Point): Point {
@@ -170,96 +170,161 @@ function findEdgePoint(room: RawRoom, toward: Point): Point {
   const dy = toward.y - cy;
 
   if (Math.abs(dx) > Math.abs(dy)) {
-    const x = dx > 0 ? room.bounds.x + room.bounds.width - 1 : room.bounds.x;
-    return { x, y: cy };
+    return { x: dx > 0 ? room.bounds.x + room.bounds.width - 1 : room.bounds.x, y: cy };
   }
-  const y = dy > 0 ? room.bounds.y + room.bounds.height - 1 : room.bounds.y;
-  return { x: cx, y };
+  return { x: cx, y: dy > 0 ? room.bounds.y + room.bounds.height - 1 : room.bounds.y };
 }
 
-export function generateTopology(
+function buildFloorTopology(
   rng: SeededRandom,
-  options: GenerationOptions
-): TopologyResult {
-  const rawRooms = placeRooms(rng, options);
+  options: GenerationOptions,
+  floor: number,
+  roomCount: number,
+  roomNumberOffset: number
+): {
+  rawRooms: RawRoom[];
+  rooms: RoomNode[];
+  corridors: CorridorEdge[];
+  occupied: Set<string>;
+} {
+  const rawRooms = placeRoomsOnFloor(rng, options, floor, roomCount, roomNumberOffset);
   const edges = connectRooms(rawRooms, rng);
   const occupied = new Set<string>();
+  const centers = rawRooms.map(roomCenter);
 
   const rooms: RoomNode[] = rawRooms.map((room, index) => {
     const tiles = carveRoomTiles(room.bounds);
     tiles.forEach((t) => occupied.add(cellKey(t.x, t.y)));
     return {
       id: room.id,
-      number: index + 1,
-      name: `Room ${index + 1}`,
+      number: roomNumberOffset + index + 1,
+      name: `Room ${roomNumberOffset + index + 1}`,
       bounds: room.bounds,
       tiles,
-      content: {
-        role: "empty",
-        lightLevel: "dim",
-        description: "",
-      },
+      floor,
+      content: { role: "empty", lightLevel: "dim", description: "" },
     };
   });
 
-  const corridors: CorridorEdge[] = [];
-  const centers = rawRooms.map(roomCenter);
-
-  edges.forEach(({ a: aIndex, b: bIndex }, idx) => {
-    const fromRoom = rawRooms[aIndex];
-    const toRoom = rawRooms[bIndex];
-    const fromCenter = centers[aIndex];
-    const toCenter = centers[bIndex];
-    const start = findEdgePoint(fromRoom, toCenter);
-    const end = findEdgePoint(toRoom, fromCenter);
-    const points = carveCorridor(start, end, occupied);
-
-    corridors.push({
-      id: `corridor-${idx + 1}`,
+  const corridors: CorridorEdge[] = edges.map(({ a, b }, idx) => {
+    const fromRoom = rawRooms[a];
+    const toRoom = rawRooms[b];
+    const start = findEdgePoint(fromRoom, centers[b]);
+    const end = findEdgePoint(toRoom, centers[a]);
+    return {
+      id: `f${floor}-corridor-${idx + 1}`,
       fromRoomId: fromRoom.id,
       toRoomId: toRoom.id,
-      door: pickDoorType(rng),
-      points,
-    });
+      door: pickDoorType(rng, options.secretDoorChance),
+      points: carveCorridor(start, end, occupied),
+      floor,
+    };
   });
 
-  const entranceRoomId = rawRooms.reduce((best, room, index) => {
+  return { rawRooms, rooms, corridors, occupied };
+}
+
+export function generateTopology(
+  rng: SeededRandom,
+  options: GenerationOptions
+): TopologyResult {
+  const floorCount = Math.max(1, Math.min(5, options.floorCount));
+  const [minFactor, maxFactor] = DENSITY_ROOM_COUNTS[options.density];
+  const totalTarget = Math.round(
+    options.roomCount * (minFactor + rng.next() * (maxFactor - minFactor))
+  );
+  const roomsPerFloor = Math.max(3, Math.floor(totalTarget / floorCount));
+
+  const allRooms: RoomNode[] = [];
+  const allCorridors: CorridorEdge[] = [];
+  const floors: FloorInfo[] = [];
+  const stairs: StairLink[] = [];
+  const stairRoomIds = new Set<string>();
+  let roomOffset = 0;
+  let entranceRoomId = "";
+  const occupied = new Set<string>();
+
+  const floorRoomLists: RawRoom[][] = [];
+
+  for (let f = 1; f <= floorCount; f++) {
+    const result = buildFloorTopology(rng, options, f, roomsPerFloor, roomOffset);
+    floorRoomLists.push(result.rawRooms);
+    allRooms.push(...result.rooms);
+    allCorridors.push(...result.corridors);
+    floors.push({
+      number: f,
+      name: f === 1 ? "Upper Level" : f === floorCount ? "Deep Level" : `Level ${f}`,
+      roomIds: result.rooms.map((r) => r.id),
+    });
+    result.rooms.forEach((t) => t.tiles.forEach((p) => occupied.add(cellKey(p.x, p.y))));
+    roomOffset += result.rooms.length;
+  }
+
+  entranceRoomId = floorRoomLists[0]?.reduce((bestId, room, idx, arr) => {
+    const best = arr.find((r) => r.id === bestId)!;
     const score = room.bounds.x + room.bounds.y;
-    const bestScore = rawRooms[best].bounds.x + rawRooms[best].bounds.y;
-    return score < bestScore ? index : best;
-  }, 0);
+    const bestScore = best.bounds.x + best.bounds.y;
+    return score < bestScore ? room.id : bestId;
+  }, floorRoomLists[0][0]?.id ?? "") ?? "";
+
+  for (let f = 1; f < floorCount; f++) {
+    const upper = floorRoomLists[f - 1];
+    const lower = floorRoomLists[f];
+    if (!upper?.length || !lower?.length) continue;
+
+    const upRoom = rng.pick(upper);
+    const downRoom = rng.pick(lower);
+    stairRoomIds.add(upRoom.id);
+    stairRoomIds.add(downRoom.id);
+    stairs.push({
+      id: `stairs-${f}-${f + 1}`,
+      fromRoomId: upRoom.id,
+      toRoomId: downRoom.id,
+      fromFloor: f,
+      toFloor: f + 1,
+    });
+  }
 
   return {
-    rooms,
-    corridors,
-    entranceRoomId: rawRooms[entranceRoomId].id,
+    rooms: allRooms,
+    corridors: allCorridors,
+    stairs,
+    floors,
+    entranceRoomId,
     occupied,
   };
 }
 
+export function getStairRoomIds(topology: TopologyResult): Set<string> {
+  const ids = new Set<string>();
+  for (const s of topology.stairs) {
+    ids.add(s.fromRoomId);
+    ids.add(s.toRoomId);
+  }
+  return ids;
+}
+
 export function renderAsciiMap(
   options: GenerationOptions,
-  topology: TopologyResult
+  topology: TopologyResult,
+  activeFloor = 1
 ): string {
   const grid: string[][] = Array.from({ length: options.gridHeight }, () =>
     Array.from({ length: options.gridWidth }, () => " ")
   );
 
-  for (const room of topology.rooms) {
+  for (const room of topology.rooms.filter((r) => r.floor === activeFloor)) {
     for (const tile of room.tiles) {
       grid[tile.y][tile.x] = ".";
     }
-    const label = String(room.number % 10);
     const cx = room.bounds.x + Math.floor(room.bounds.width / 2);
     const cy = room.bounds.y + Math.floor(room.bounds.height / 2);
-    grid[cy][cx] = label;
+    grid[cy][cx] = String(room.number % 10);
   }
 
-  for (const corridor of topology.corridors) {
+  for (const corridor of topology.corridors.filter((c) => c.floor === activeFloor)) {
     for (const point of corridor.points) {
-      if (grid[point.y][point.x] === " ") {
-        grid[point.y][point.x] = "#";
-      }
+      if (grid[point.y][point.x] === " ") grid[point.y][point.x] = "#";
     }
   }
 

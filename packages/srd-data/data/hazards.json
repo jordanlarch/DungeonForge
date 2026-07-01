@@ -1,0 +1,53 @@
+{
+  "_license": "Source: D&D System Reference Document v5.2.1, © Wizards of the Coast LLC, licensed under CC-BY 4.0.",
+  "hazards": [
+    {
+      "id": "extreme-cold",
+      "name": "Extreme Cold",
+      "summary": "At 0°F or lower, exposed creatures must succeed on a DC 10 Constitution save each hour or gain 1 Exhaustion level.",
+      "motifs": ["underdark", "abandoned"]
+    },
+    {
+      "id": "extreme-heat",
+      "name": "Extreme Heat",
+      "summary": "At 100°F or higher without drinkable water, Constitution saves each hour or gain Exhaustion.",
+      "motifs": ["infernal"]
+    },
+    {
+      "id": "deep-water",
+      "name": "Deep Water",
+      "summary": "Swimming in water over 100 feet deep requires a DC 10 Constitution save each hour without Swim Speed or gain Exhaustion.",
+      "motifs": ["aquatic", "underdark"]
+    },
+    {
+      "id": "difficult-terrain",
+      "name": "Difficult Terrain",
+      "summary": "Each foot of movement costs 1 extra foot in rubble, dense growth, or steep stairs.",
+      "motifs": []
+    },
+    {
+      "id": "dim-light",
+      "name": "Dim Light",
+      "summary": "Lightly obscured area; creatures rely on senses that don't require sight.",
+      "motifs": ["undead", "underdark", "abandoned"]
+    },
+    {
+      "id": "darkness",
+      "name": "Darkness",
+      "summary": "Heavily obscured; effectively blinded without darkvision or light.",
+      "motifs": ["underdark", "undead"]
+    },
+    {
+      "id": "slippery",
+      "name": "Slippery Surfaces",
+      "summary": "Wet or algae-covered stone; Dexterity checks to avoid falling have Disadvantage.",
+      "motifs": ["aquatic", "underdark"]
+    },
+    {
+      "id": "unstable-ceiling",
+      "name": "Unstable Ceiling",
+      "summary": "Loud noise or impact may trigger a collapsing section.",
+      "motifs": ["abandoned", "giant"]
+    }
+  ]
+}

@@ -4,6 +4,8 @@ import magicItemsData from "@dungeonforge/srd-data/magic-items" with { type: "js
 import encounterXpData from "@dungeonforge/srd-data/encounter-xp" with { type: "json" };
 import treasureTablesData from "@dungeonforge/srd-data/treasure-tables" with { type: "json" };
 import motifsData from "@dungeonforge/srd-data/motifs" with { type: "json" };
+import hazardsData from "@dungeonforge/srd-data/hazards" with { type: "json" };
+import npcTemplatesData from "@dungeonforge/srd-data/npc-templates" with { type: "json" };
 
 import type {
   EncounterDifficulty,
@@ -24,6 +26,8 @@ export interface SrdDatabase {
     { low: number; moderate: number; high: number }
   >;
   treasureTables: typeof treasureTablesData;
+  hazards: unknown[];
+  npcTemplates: unknown[];
 }
 
 export function loadSrdDatabase(): SrdDatabase {
@@ -35,6 +39,8 @@ export function loadSrdDatabase(): SrdDatabase {
     motifs: motifsData.motifs as Motif[],
     xpBudgetPerCharacter: encounterXpData.xpBudgetPerCharacter,
     treasureTables: treasureTablesData,
+    hazards: hazardsData.hazards,
+    npcTemplates: npcTemplatesData.templates,
   };
 }
 

@@ -1,0 +1,69 @@
+{
+  "_license": "Original content by DungeonForge contributors, CC-BY 4.0.",
+  "templates": [
+    {
+      "id": "paranoid-scout",
+      "name": "Paranoid Scout",
+      "personality": "Jumpy, speaks in whispers, trusts no one.",
+      "dialogue": ["\"Keep your voice down—they're listening.\"", "\"I didn't survive this long by being friendly.\""],
+      "secret": "Knows a secret door location but won't reveal it without proof of goodwill.",
+      "motifs": ["abandoned", "vermin", "underdark"]
+    },
+    {
+      "id": "bitter-guard",
+      "name": "Bitter Guard",
+      "personality": "Cynical, wounded, waiting for relief that never comes.",
+      "dialogue": ["\"You're the fifth party this month. None of them came back.\"", "\"The pay wasn't worth it.\""],
+      "secret": "Has a key to a locked treasury room.",
+      "motifs": ["abandoned", "giant"]
+    },
+    {
+      "id": "mad-hermit",
+      "name": "Mad Hermit",
+      "personality": "Muttering, sees patterns in the walls, oddly helpful.",
+      "dialogue": ["\"The stones told me you were coming.\"", "\"Don't step on the third tile. Trust me.\""],
+      "secret": "Can identify one trap by sight in the dungeon.",
+      "motifs": ["arcane", "underdark", "undead"]
+    },
+    {
+      "id": "cult-acolyte",
+      "name": "Cult Acolyte",
+      "personality": "Serene, unsettling calm, speaks in riddles.",
+      "dialogue": ["\"The master sleeps below. Soon all will wake.\"", "\"You may pass—if you leave an offering.\""],
+      "secret": "Will betray the party if they disturb the sanctum.",
+      "motifs": ["undead", "infernal", "arcane"]
+    },
+    {
+      "id": "trapped-merchant",
+      "name": "Trapped Merchant",
+      "personality": "Greedy but terrified, negotiates everything.",
+      "dialogue": ["\"I have potions—at a fair price, given the circumstances.\"", "\"Help me out and I'll mark the safe path.\""],
+      "secret": "Hid a cache of gems in a nearby room.",
+      "motifs": ["abandoned", "vermin"]
+    },
+    {
+      "id": "ghostly-scholar",
+      "name": "Ghostly Scholar",
+      "personality": "Melancholic, obsessed with unfinished research.",
+      "dialogue": ["\"My notes... if you find them, burn them. Or don't. I forget.\"", "\"The ward on the east wing failed centuries ago.\""],
+      "secret": "Reveals the weakness of one undead in the dungeon.",
+      "motifs": ["undead", "arcane"]
+    },
+    {
+      "id": "deep-guide",
+      "name": "Deep Guide",
+      "personality": "Stoic, knows the underdark, speaks little.",
+      "dialogue": ["\"Stay close. The fungi hear footsteps.\"", "\"That way leads to water. The other way, to teeth.\""],
+      "secret": "Demands payment in surface coin to lead past one hazard.",
+      "motifs": ["underdark", "aquatic"]
+    },
+    {
+      "id": "fiend-broker",
+      "name": "Fiend Broker",
+      "personality": "Charming, dangerous, always making deals.",
+      "dialogue": ["\"Information has a price. So does silence.\"", "\"I don't lie. I merely omit.\""],
+      "secret": "Can disable one infernal trap for a favor owed later.",
+      "motifs": ["infernal"]
+    }
+  ]
+}

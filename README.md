@@ -1,42 +1,50 @@
 # DungeonForge
 
-SRD 5.2.1-grounded procedural dungeon generator. Creates grid-based dungeon maps stocked with combat encounters (SRD XP budget rules), traps, and treasure.
+SRD 5.2.1-grounded procedural dungeon generator with an in-browser map editor, configurable stocking, and optional Anthropic AI narrative enhancement.
 
 ## Features
 
-- **Grid topology** — rooms, corridors, doors (open/closed/secret)
-- **SRD 5.2.1 stocking** — monsters, traps, magic items, encounter XP tables
-- **Motifs** — filter monster/trap pools (undead, arcane, underdark, etc.)
-- **Exports** — JSON dungeon document + Markdown one-page key
-- **Web UI** — live generation with seed control
-- **CLI** — `dungeonforge generate`
+- **Donjon-style 5ft grid** — rooms, corridors, secret doors, multi-floor stairs
+- **Configurable stocking** — encounter / trap / treasure / NPC density sliders
+- **SRD 5.2.1 content** — XP-budget encounters, scaled traps, magic items, hazards
+- **In-browser editor** — click rooms, reroll contents, pan/zoom map
+- **Themes** — parchment or dark stone
+- **Export** — PNG, SVG, JSON, Markdown
+- **AI narrative** — Anthropic Claude via Settings (key in localStorage only)
 
 ## Quick Start
 
 ```bash
 npm install
-npm run build:srd    # rebuild monsters.json from raw Open5e data
+npm run build:srd
 npm run build
-npm run dev          # web UI at http://localhost:5173
-npm run generate     # CLI sample output to ./
+npm run dev    # http://localhost:5173
 ```
+
+Copy `.env.example` to `.env.local` for optional dev API key (Settings UI preferred).
+
+## SRD PDF
+
+Official CC-licensed PDF: [`docs/srd/SRD_CC_v5.2.1.pdf`](docs/srd/SRD_CC_v5.2.1.pdf)
 
 ## Project Structure
 
 ```
+docs/srd/           SRD PDF + attribution
 packages/
-  srd-data/     CC-BY SRD JSON (monsters, traps, items, XP tables)
-  engine/       Core generator, stocking, export
-  cli/          Command-line interface
-apps/
-  web/          Vite + React UI
+  srd-data/         JSON (monsters, traps, hazards, NPC templates)
+  engine/           Generator + stocking (schema v2)
+  renderer/         SVG/PNG map rendering
+  narrative/        Template + Anthropic AI provider
+  cli/              Command-line generator
+apps/web/           Generator + editor UI
 ```
 
-## SRD Compliance
+## Security
 
-Monster data sourced from [cocoajamworld/srd-5.2.1](https://github.com/cocoajamworld/srd-5.2.1) (Open5e / CC-BY 4.0). Traps, encounter XP budgets, and magic items follow SRD 5.2.1. Treasure hoard ranges are original DungeonForge tables (CC-BY 4.0), not DMG copies.
+Never commit API keys. If a key was exposed, rotate it at [console.anthropic.com](https://console.anthropic.com).
 
 ## License
 
-- Code: MIT (see repository)
-- SRD content: CC-BY 4.0 — © Wizards of the Coast LLC
+- Code: MIT
+- SRD content: CC-BY 4.0 © Wizards of the Coast LLC

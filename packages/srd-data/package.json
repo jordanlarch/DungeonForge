@@ -9,6 +9,8 @@
     "./magic-items": "./data/magic-items.json",
     "./encounter-xp": "./data/encounter-xp.json",
     "./treasure-tables": "./data/treasure-tables.json",
-    "./motifs": "./data/motifs.json"
+    "./motifs": "./data/motifs.json",
+    "./hazards": "./data/hazards.json",
+    "./npc-templates": "./data/npc-templates.json"
   }
 }
