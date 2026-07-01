@@ -1,0 +1,69 @@
+{
+  "_license": "Original content by DungeonForge contributors, CC-BY 4.0.",
+  "motifs": [
+    {
+      "id": "abandoned",
+      "name": "Abandoned",
+      "monsterTypes": [],
+      "trapIds": ["hidden-pit", "collapsing-roof", "falling-net"],
+      "lightLevel": "dim",
+      "description": "Long deserted; dust, decay, and opportunistic scavengers."
+    },
+    {
+      "id": "undead",
+      "name": "Undead",
+      "monsterTypes": ["undead"],
+      "trapIds": ["poisoned-needle", "spiked-pit", "poisoned-darts"],
+      "lightLevel": "dim",
+      "description": "Corpses stir in the dark; necromantic residue lingers."
+    },
+    {
+      "id": "vermin",
+      "name": "Vermin",
+      "monsterTypes": ["beast", "monstrosity"],
+      "trapIds": ["hidden-pit", "falling-net"],
+      "lightLevel": "dark",
+      "description": "Infested tunnels patrolled by hungry swarms."
+    },
+    {
+      "id": "underdark",
+      "name": "Underdark",
+      "monsterTypes": ["aberration", "monstrosity"],
+      "trapIds": ["spiked-pit", "poisoned-darts", "rolling-stone"],
+      "lightLevel": "dark",
+      "description": "Deep caverns where light is a liability."
+    },
+    {
+      "id": "arcane",
+      "name": "Arcane",
+      "monsterTypes": ["construct", "elemental"],
+      "trapIds": ["fire-casting-statue", "poisoned-needle"],
+      "lightLevel": "dim",
+      "description": "Wizardly wards and animated guardians."
+    },
+    {
+      "id": "giant",
+      "name": "Giant",
+      "monsterTypes": ["giant"],
+      "trapIds": ["rolling-stone", "collapsing-roof"],
+      "lightLevel": "bright",
+      "description": "Oversized halls built for towering occupants."
+    },
+    {
+      "id": "aquatic",
+      "name": "Aquatic",
+      "monsterTypes": ["beast", "monstrosity"],
+      "trapIds": ["hidden-pit", "spiked-pit"],
+      "lightLevel": "dim",
+      "description": "Flooded chambers and slick stone."
+    },
+    {
+      "id": "infernal",
+      "name": "Infernal",
+      "monsterTypes": ["fiend"],
+      "trapIds": ["fire-casting-statue", "poisoned-darts"],
+      "lightLevel": "dim",
+      "description": "Brimstone heat and cruel mechanisms."
+    }
+  ]
+}
