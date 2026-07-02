@@ -1,0 +1,105 @@
+{
+  "conditions": [
+    { "id": "prone", "name": "Prone", "effect": "Melee attacks against have advantage; ranged have disadvantage. Stand costs half speed." },
+    { "id": "poisoned", "name": "Poisoned", "effect": "Disadvantage on attack rolls and ability checks." },
+    { "id": "frightened", "name": "Frightened", "effect": "Disadvantage on ability checks and attack rolls while source is in line of sight." },
+    { "id": "restrained", "name": "Restrained", "effect": "Speed 0; disadvantage on attacks and Dex saves; attacks against have advantage." }
+  ],
+  "spells": [
+    {
+      "id": "fire-bolt",
+      "name": "Fire Bolt",
+      "level": 0,
+      "school": "evocation",
+      "classes": ["wizard"],
+      "castingTime": "action",
+      "range": "120 ft",
+      "attackType": "spell",
+      "damage": "1d10",
+      "damageType": "fire"
+    },
+    {
+      "id": "light",
+      "name": "Light",
+      "level": 0,
+      "school": "evocation",
+      "classes": ["wizard", "rogue"],
+      "castingTime": "action",
+      "range": "Touch",
+      "effect": "Object sheds bright light 20 ft."
+    },
+    {
+      "id": "mage-hand",
+      "name": "Mage Hand",
+      "level": 0,
+      "school": "conjuration",
+      "classes": ["wizard"],
+      "castingTime": "action",
+      "range": "30 ft",
+      "effect": "Spectral hand manipulates objects up to 10 lb."
+    },
+    {
+      "id": "burning-hands",
+      "name": "Burning Hands",
+      "level": 1,
+      "school": "evocation",
+      "classes": ["wizard"],
+      "castingTime": "action",
+      "range": "Self (15-ft cone)",
+      "saveAbility": "dex",
+      "saveDcAbility": "int",
+      "damage": "3d6",
+      "damageType": "fire",
+      "halfOnSave": true,
+      "concentration": false
+    },
+    {
+      "id": "magic-missile",
+      "name": "Magic Missile",
+      "level": 1,
+      "school": "evocation",
+      "classes": ["wizard"],
+      "castingTime": "action",
+      "range": "120 ft",
+      "autoHit": true,
+      "damage": "1d4+1",
+      "damageType": "force",
+      "missiles": 3,
+      "concentration": false
+    },
+    {
+      "id": "shield",
+      "name": "Shield",
+      "level": 1,
+      "school": "abjuration",
+      "classes": ["wizard"],
+      "castingTime": "reaction",
+      "range": "Self",
+      "effect": "+5 AC until start of next turn",
+      "concentration": false
+    },
+    {
+      "id": "cure-wounds",
+      "name": "Cure Wounds",
+      "level": 1,
+      "school": "evocation",
+      "classes": ["rogue"],
+      "castingTime": "action",
+      "range": "Touch",
+      "healing": "1d8",
+      "healingAbility": "wis",
+      "concentration": false
+    },
+    {
+      "id": "bless",
+      "name": "Bless",
+      "level": 1,
+      "school": "enchantment",
+      "classes": ["fighter"],
+      "castingTime": "action",
+      "range": "30 ft",
+      "effect": "Up to 3 creatures add 1d4 to attack rolls and saves",
+      "concentration": true
+    }
+  ]
+}

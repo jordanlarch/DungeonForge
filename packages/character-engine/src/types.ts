@@ -30,11 +30,15 @@ export interface CharacterDocument {
   speed: number;
   initiativeBonus: number;
   weapons: WeaponAttack[];
+  knownSpells?: import("./spells.js").KnownSpell[];
+  spellSlots?: import("./spells.js").SpellSlots;
   notes?: string;
 }
 
 export interface PartyRoster {
-  schemaVersion: 1;
+  schemaVersion: 2;
   activeCharacterId: string | null;
+  /** Up to 6 character IDs selected for Play mode */
+  partyMemberIds: string[];
   characters: CharacterDocument[];
 }

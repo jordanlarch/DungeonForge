@@ -607,3 +607,56 @@ button:hover {
     grid-template-columns: 1fr;
   }
 }
+
+.roster-list li.in-party .roster-btn {
+  border-color: var(--accent-dim);
+}
+
+.party-toggle {
+  padding: 0.35rem 0.5rem;
+  color: var(--muted);
+}
+
+.party-toggle.active {
+  color: var(--accent);
+}
+
+.party-member {
+  margin-bottom: 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.35rem;
+}
+
+.party-member.active {
+  border-color: var(--accent-dim);
+}
+
+.party-member.turn {
+  border-color: var(--success);
+}
+
+.spell-rail .spell-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.spell-rail button.active {
+  border-color: var(--accent);
+}
+
+.trap-panel .trap-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.success {
+  color: var(--success);
+}
+
+.concentration {
+  color: #b8d4ff;
+  font-size: 0.85rem;
+}

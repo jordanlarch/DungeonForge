@@ -32,7 +32,16 @@ export function loadPlaySession(): PlaySession | null {
   const raw = localStorage.getItem(SESSION_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as PlaySession;
+    const parsed = JSON.parse(raw) as PlaySession & { schemaVersion?: number; disarmedTrapRoomIds?: string[]; partyCharacterIds?: string[] };
+    if (parsed.schemaVersion !== 2) {
+      return {
+        ...parsed,
+        schemaVersion: 2,
+        partyCharacterIds: parsed.partyCharacterIds ?? parsed.tokens.filter((t) => t.kind === "pc").map((t) => t.characterId!).filter(Boolean),
+        disarmedTrapRoomIds: parsed.disarmedTrapRoomIds ?? [],
+      };
+    }
+    return parsed;
   } catch {
     return null;
   }

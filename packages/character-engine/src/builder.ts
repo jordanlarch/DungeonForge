@@ -1,4 +1,5 @@
 import { getClass, getSpecies } from "./data.js";
+import { defaultKnownSpells, spellSlotsForClass } from "./spells.js";
 import type { AbilityKey, AbilityScores, CharacterDocument } from "./types.js";
 
 export function abilityModifier(score: number): number {
@@ -39,6 +40,9 @@ export function createCharacter(input: CreateCharacterInput): CharacterDocument 
 
   const damageMod = primaryMod !== 0 ? (primaryMod > 0 ? `+${primaryMod}` : `${primaryMod}`) : "";
 
+  const knownSpells = defaultKnownSpells(cls.id, level);
+  const spellSlots = spellSlotsForClass(cls.id, level);
+
   return {
     schemaVersion: 1,
     id: `char-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -60,6 +64,8 @@ export function createCharacter(input: CreateCharacterInput): CharacterDocument 
         damageType: cls.defaultWeapon.damageType,
       },
     ],
+    ...(knownSpells.length ? { knownSpells } : {}),
+    ...(spellSlots ? { spellSlots } : {}),
   };
 }
 

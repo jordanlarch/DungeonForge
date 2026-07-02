@@ -11,6 +11,7 @@
     "./treasure-tables": "./data/treasure-tables.json",
     "./motifs": "./data/motifs.json",
     "./hazards": "./data/hazards.json",
-    "./npc-templates": "./data/npc-templates.json"
+    "./npc-templates": "./data/npc-templates.json",
+    "./spells-conditions": "./data/spells-conditions.json"
   }
 }

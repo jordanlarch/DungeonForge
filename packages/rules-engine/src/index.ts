@@ -19,5 +19,17 @@ export {
   isCombatOver,
   applyAction,
   runMonsterTurn,
+  castSpellInCombat,
   type StartCombatInput,
 } from "./combat.js";
+export {
+  resolveSpell,
+  computeSpellSaveDc,
+  resolveSavingThrow,
+  applyCondition,
+  hasCondition,
+  type SpellDefinition,
+  type SpellResult,
+  type CastSpellInput,
+} from "./spells.js";
+export type { ConditionId, ActiveCondition, ConcentrationState } from "./conditions.js";

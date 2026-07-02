@@ -6,11 +6,12 @@ import {
   createCharacter,
   defaultAbilitiesFromArray,
   deleteCharacter,
-  getActiveCharacter,
   loadParty,
   setActiveCharacter,
+  togglePartyMember,
   upsertCharacter,
   abilityModifier,
+  MAX_PARTY,
 } from "@dungeonforge/character-engine";
 
 const ABILITY_KEYS: AbilityKey[] = ["str", "dex", "con", "int", "wis", "cha"];
@@ -25,7 +26,7 @@ export default function CharactersPage() {
     abilities: defaultAbilitiesFromArray(),
   });
 
-  const active = getActiveCharacter();
+  const active = party.characters.find((c) => c.id === party.activeCharacterId) ?? party.characters[0] ?? null;
 
   const handleCreate = () => {
     const character = createCharacter(form);
@@ -52,18 +53,27 @@ export default function CharactersPage() {
           {party.characters.length === 0 && <p className="muted">No characters yet. Create one to play.</p>}
           <ul className="roster-list">
             {party.characters.map((c) => (
-              <li key={c.id} className={party.activeCharacterId === c.id ? "active" : ""}>
+              <li key={c.id} className={party.partyMemberIds.includes(c.id) ? "in-party" : ""}>
                 <button type="button" className="roster-btn" onClick={() => handleSelect(c)}>
                   <strong>{c.name}</strong>
                   <span>L{c.level} {CLASSES.find((x) => x.id === c.classId)?.name} · HP {c.hp.current}/{c.hp.max}</span>
+                </button>
+                <button
+                  type="button"
+                  className={party.partyMemberIds.includes(c.id) ? "party-toggle active" : "party-toggle"}
+                  title="Include in Play party"
+                  onClick={() => setParty(togglePartyMember(c.id))}
+                >
+                  {party.partyMemberIds.includes(c.id) ? "★" : "☆"}
                 </button>
                 <button type="button" className="danger-btn" onClick={() => handleDelete(c.id)}>×</button>
               </li>
             ))}
           </ul>
+          <p className="muted">Party for Play: {party.partyMemberIds.length}/{MAX_PARTY} selected (★)</p>
           {active && (
             <div className="active-summary">
-              <h3>Active for Play</h3>
+              <h3>Selected for editing</h3>
               <p>{active.name} · AC {active.armorClass} · Init +{active.initiativeBonus}</p>
             </div>
           )}
