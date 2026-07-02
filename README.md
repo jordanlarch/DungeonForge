@@ -34,7 +34,9 @@ Design and architecture plans live in [`docs/plans/`](docs/plans/README.md) — 
 ## Project Structure
 
 ```
-docs/srd/           SRD PDF + attribution
+docs/
+  srd/              SRD PDF + attribution
+  plans/            Design and architecture plans
 packages/
   srd-data/         JSON (monsters, traps, hazards, NPC templates)
   engine/           Generator + stocking (schema v2)
