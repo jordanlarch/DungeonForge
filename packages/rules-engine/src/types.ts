@@ -13,6 +13,11 @@ export interface CombatParticipant {
   attackBonus: number;
   damage: string;
   damageType: string;
+  characterId?: string;
+  abilities?: Record<string, number>;
+  spellAttackBonus?: number;
+  conditions?: import("./conditions.js").ActiveCondition[];
+  concentration?: import("./conditions.js").ConcentrationState | null;
 }
 
 export interface ActionEconomy {

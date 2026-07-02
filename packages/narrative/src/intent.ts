@@ -39,9 +39,9 @@ export interface RulesCapabilities {
 export const DEFAULT_CAPABILITIES: RulesCapabilities = {
   move: true,
   attack: true,
-  spells: false,
-  conditions: false,
-  traps: false,
+  spells: true,
+  conditions: true,
+  traps: true,
   social: true,
 };
 

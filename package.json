@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "build": "npm run build -w @dungeonforge/engine && npm run build -w @dungeonforge/web",
-    "build:srd": "python3 scripts/build-srd-data.py",
+    "build:srd": "node scripts/run-build-srd.mjs",
     "dev": "npm run dev -w @dungeonforge/web",
     "generate": "npm run generate -w @dungeonforge/cli",
     "test": "npm run test -w @dungeonforge/engine && npm run test -w @dungeonforge/rules-engine",

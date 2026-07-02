@@ -1,4 +1,5 @@
 import { rollD20, rollDamage, rollInitiative } from "./dice.js";
+import { resolveSpell, type SpellDefinition, type SpellResult } from "./spells.js";
 import type {
   ActionEconomy,
   AttackResult,
@@ -18,9 +19,10 @@ export function freshEconomy(speedFeet: number): ActionEconomy {
 }
 
 export interface StartCombatInput {
-  pc: {
+  pcs: {
     tokenId: string;
     name: string;
+    characterId?: string;
     hp: { max: number; current: number };
     armorClass: number;
     attackBonus: number;
@@ -28,7 +30,9 @@ export interface StartCombatInput {
     damageType: string;
     initiativeBonus: number;
     speed: number;
-  };
+    abilities?: Record<string, number>;
+    spellAttackBonus?: number;
+  }[];
   monsters: {
     tokenId: string;
     name: string;
@@ -47,19 +51,25 @@ function monsterCombatStats(crNumeric: number, partyLevel: number) {
 export function startCombat(input: StartCombatInput, partyLevel = 3): CombatState {
   const participants: CombatParticipant[] = [];
 
-  const pcInit = rollInitiative(input.pc.initiativeBonus);
-  participants.push({
-    id: `pc-${input.pc.tokenId}`,
-    tokenId: input.pc.tokenId,
-    name: input.pc.name,
-    kind: "pc",
-    initiative: pcInit,
-    hp: { ...input.pc.hp },
-    armorClass: input.pc.armorClass,
-    attackBonus: input.pc.attackBonus,
-    damage: input.pc.damage,
-    damageType: input.pc.damageType,
-  });
+  for (const pc of input.pcs) {
+    participants.push({
+      id: `pc-${pc.tokenId}`,
+      tokenId: pc.tokenId,
+      name: pc.name,
+      kind: "pc",
+      characterId: pc.characterId,
+      initiative: rollInitiative(pc.initiativeBonus),
+      hp: { ...pc.hp },
+      armorClass: pc.armorClass,
+      attackBonus: pc.attackBonus,
+      damage: pc.damage,
+      damageType: pc.damageType,
+      abilities: pc.abilities,
+      spellAttackBonus: pc.spellAttackBonus,
+      conditions: [],
+      concentration: null,
+    });
+  }
 
   for (const m of input.monsters) {
     const stats = monsterCombatStats(m.crNumeric, partyLevel);
@@ -81,7 +91,8 @@ export function startCombat(input: StartCombatInput, partyLevel = 3): CombatStat
 
   const economy: Record<string, ActionEconomy> = {};
   for (const p of participants) {
-    economy[p.id] = freshEconomy(p.kind === "pc" ? input.pc.speed : 30);
+    const pcInput = input.pcs.find((pc) => `pc-${pc.tokenId}` === p.id);
+    economy[p.id] = freshEconomy(p.kind === "pc" ? (pcInput?.speed ?? 30) : 30);
   }
 
   const first = participants[0]?.name ?? "Unknown";
@@ -225,7 +236,8 @@ export function runMonsterTurn(state: CombatState): CombatState {
     return endTurn(state);
   }
 
-  const pc = state.order.find((p) => p.kind === "pc" && p.hp.current > 0);
+  const pcs = state.order.filter((p) => p.kind === "pc" && p.hp.current > 0);
+  const pc = pcs[Math.floor(Math.random() * pcs.length)];
   if (!pc) return endTurn(state);
 
   const { state: afterAttack } = resolveAttack(state, current.id, pc.id);
@@ -241,6 +253,50 @@ export function runMonsterTurn(state: CombatState): CombatState {
   }
 
   return next;
+}
+
+export function castSpellInCombat(
+  state: CombatState,
+  casterId: string,
+  targetId: string,
+  spell: SpellDefinition
+): { state: CombatState; result: SpellResult } {
+  const caster = state.order.find((p) => p.id === casterId);
+  const target = state.order.find((p) => p.id === targetId);
+  if (!caster || !target) throw new Error("Invalid caster or target");
+
+  const result = resolveSpell({
+    caster,
+    target,
+    spell,
+    casterAbilities: caster.abilities ?? {},
+    spellAttackBonus: caster.spellAttackBonus,
+  });
+
+  let updatedOrder = state.order.map((p) => {
+    if (p.id === targetId) {
+      return {
+        ...p,
+        hp: {
+          ...p.hp,
+          current: Math.min(p.hp.max, Math.max(0, p.hp.current - result.damage + result.healing)),
+        },
+      };
+    }
+    if (p.id === casterId && spell.concentration) {
+      return { ...p, concentration: { spellId: spell.id, spellName: spell.name } };
+    }
+    return p;
+  });
+
+  let next: CombatState = {
+    ...state,
+    order: updatedOrder,
+    log: [...state.log, result.message],
+  };
+  next = spendAction(next, casterId, "action");
+
+  return { state: next, result };
 }
 
 export { CORE_ACTIONS };

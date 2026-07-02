@@ -243,6 +243,8 @@ Full SRD 5.2.1 combat is a **multi-year** rules engine (spells alone are hundred
 - Conditions (prone, poisoned, etc.) from SRD
 - Traps from dungeon `TrapContent` with SRD detect/disarm DCs
 
+**Status:** Implemented on `cursor/play-mode-v2-aaf1` (party selection, multi-PC combat, spell casting, trap search/detect/disarm, Windows `build:srd` fix).
+
 ### Play v3
 - Multi-room persistence, long rest, XP award, level-up
 - Reactions (opportunity attack, shield when implemented)

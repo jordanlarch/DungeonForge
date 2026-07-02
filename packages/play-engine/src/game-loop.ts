@@ -8,37 +8,43 @@ import {
   runMonsterTurn,
   startCombat,
   applyAction,
+  castSpellInCombat,
 } from "@dungeonforge/rules-engine";
+import { getSpell } from "@dungeonforge/character-engine";
 import { applyFogForTokens, createInitialFog } from "./fog.js";
 import { entrancePosition, isAdjacent, isPassable, roomAtPoint } from "./passability.js";
-import type { GridToken, PlayAction, PlayActionResult, PlaySession, PlaySessionInput } from "./types.js";
+import { detectTrap, disarmTrap, searchRoomForTrap } from "./traps.js";
+import type { GridToken, PlayAction, PlayActionResult, PlaySession, PlaySessionInput, PlayCharacterInput } from "./types.js";
+import { PC_COLORS } from "./types.js";
 
 export function createPlaySession(input: PlaySessionInput): PlaySession {
-  const { dungeon, character } = input;
+  const { dungeon, party } = input;
   const spawn = entrancePosition(dungeon);
-  const pcToken: GridToken = {
-    id: `token-pc-${character.id}`,
-    kind: "pc",
-    name: character.name,
-    characterId: character.id,
-    position: spawn,
+  const tokens: GridToken[] = party.map((member, i) => ({
+    id: `token-pc-${member.id}`,
+    kind: "pc" as const,
+    name: member.name,
+    characterId: member.id,
+    position: { x: spawn.x + (i % 3), y: spawn.y + Math.floor(i / 3) },
     floor: 1,
-    color: "#7eb8ff",
-  };
+    color: PC_COLORS[i % PC_COLORS.length]!,
+  }));
 
-  const fog = applyFogForTokens(createInitialFog(dungeon), dungeon, 1, [spawn]);
+  const fog = applyFogForTokens(createInitialFog(dungeon), dungeon, 1, tokens.map((t) => t.position));
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     id: `session-${Date.now()}`,
     dungeonId: `${dungeon.metadata.seed}-${dungeon.metadata.name}`,
     activeFloor: 1,
-    tokens: [pcToken],
+    tokens,
     fog,
-    activeTokenId: pcToken.id,
+    activeTokenId: tokens[0]?.id ?? null,
+    partyCharacterIds: party.map((p) => p.id),
     combat: null,
     phase: "exploration",
-    log: [`${character.name} enters ${dungeon.metadata.name}.`],
+    disarmedTrapRoomIds: [],
+    log: [`${party.map((p) => p.name).join(", ")} enter ${dungeon.metadata.name}.`],
     createdAt: new Date().toISOString(),
   };
 }
@@ -142,12 +148,13 @@ export function dispatchPlayAction(
 export function startCombatInSession(
   session: PlaySession,
   dungeon: DungeonDocument,
-  character: PlaySessionInput["character"]
+  party: PlayCharacterInput[]
 ): PlayActionResult {
-  const pcToken = session.tokens.find((t) => t.kind === "pc");
-  if (!pcToken) return { session, messages: ["No player token."] };
+  const pcTokens = session.tokens.filter((t) => t.kind === "pc");
+  if (!pcTokens.length) return { session, messages: ["No player tokens."] };
 
-  const room = roomAtPoint(dungeon, pcToken.floor, pcToken.position);
+  const anchor = pcTokens[0]!;
+  const room = roomAtPoint(dungeon, anchor.floor, anchor.position);
   if (!room?.content.encounter) {
     return { session, messages: ["No encounter here. Move into an encounter room first."] };
   }
@@ -155,19 +162,30 @@ export function startCombatInSession(
   let tokens = spawnMonstersForRoom(dungeon, session, room.id);
   const monsters = tokens.filter((t) => t.kind === "monster");
 
+  const pcsInRoom = pcTokens.filter((t) => {
+    const r = roomAtPoint(dungeon, t.floor, t.position);
+    return r?.id === room.id;
+  });
+
   const combat = startCombat(
     {
-      pc: {
-        tokenId: pcToken.id,
-        name: character.name,
-        hp: character.hp,
-        armorClass: character.armorClass,
-        attackBonus: character.attackBonus,
-        damage: character.damage,
-        damageType: character.damageType,
-        initiativeBonus: character.initiativeBonus,
-        speed: character.speed,
-      },
+      pcs: pcsInRoom.map((token) => {
+        const char = party.find((p) => p.id === token.characterId)!;
+        return {
+          tokenId: token.id,
+          name: char.name,
+          characterId: char.id,
+          hp: char.hp,
+          armorClass: char.armorClass,
+          attackBonus: char.attackBonus,
+          damage: char.damage,
+          damageType: char.damageType,
+          initiativeBonus: char.initiativeBonus,
+          speed: char.speed,
+          abilities: char.abilities,
+          spellAttackBonus: char.spellAttackBonus,
+        };
+      }),
       monsters: room.content.encounter.monsters.flatMap((m) => {
         const stats = lookupMonsterStats(m.name);
         const monTokens = monsters.filter((t) => t.name === m.name);
@@ -331,4 +349,94 @@ export function moveTokenInCombat(
     },
     messages: [`Moved to (${to.x}, ${to.y}).`],
   };
+}
+
+export function castSpellInSession(
+  session: PlaySession,
+  spellId: string,
+  targetTokenId: string,
+  characterSpeed = 30
+): PlayActionResult {
+  if (!session.combat?.active) return { session, messages: ["Not in combat."] };
+  const current = currentParticipant(session.combat);
+  if (!current || current.kind !== "pc") return { session, messages: ["Not your turn."] };
+
+  const spellDef = getSpell(spellId);
+  if (!spellDef) return { session, messages: ["Unknown spell."] };
+
+  const targetParticipant = session.combat.order.find((p) => p.tokenId === targetTokenId);
+  if (!targetParticipant) return { session, messages: ["Invalid target."] };
+
+  const { state: combat, result } = castSpellInCombat(session.combat, current.id, targetParticipant.id, spellDef);
+  let tokens = syncCombatToTokens({ ...session, combat });
+  let next: PlaySession = { ...session, tokens, combat, log: [...session.log, result.message] };
+
+  let outcome = isCombatOver(combat);
+  if (outcome === "victory") {
+    next = { ...next, phase: "exploration", combat: { ...combat, active: false } };
+    return { session: next, messages: [result.message, "Victory!"] };
+  }
+
+  let nextCombat = endTurn(combat, characterSpeed);
+  next = { ...next, combat: nextCombat, log: [...next.log, ...nextCombat.log.slice(-1)] };
+
+  while (next.combat?.active) {
+    const turn = currentParticipant(next.combat);
+    if (!turn || turn.kind === "pc") break;
+    next.combat = runMonsterTurn(next.combat);
+    outcome = isCombatOver(next.combat);
+    if (outcome !== "ongoing") {
+      next = { ...next, phase: "exploration", combat: { ...next.combat, active: false } };
+      break;
+    }
+  }
+
+  return { session: next, messages: [result.message] };
+}
+
+export function searchTrapInSession(
+  session: PlaySession,
+  dungeon: DungeonDocument,
+  perceptionMod: number
+): PlayActionResult {
+  const token = session.tokens.find((t) => t.id === session.activeTokenId);
+  if (!token) return { session, messages: ["No active token."] };
+  const room = roomAtPoint(dungeon, token.floor, token.position);
+  if (!room) return { session, messages: ["Not in a room."] };
+  if (session.disarmedTrapRoomIds.includes(room.id)) {
+    return { session, messages: ["This room's trap was already disarmed."] };
+  }
+  const result = searchRoomForTrap(room, 10 + perceptionMod);
+  return { session: { ...session, log: [...session.log, result.message] }, messages: [result.message] };
+}
+
+export function detectTrapInSession(
+  session: PlaySession,
+  dungeon: DungeonDocument,
+  perceptionMod: number
+): PlayActionResult {
+  const token = session.tokens.find((t) => t.id === session.activeTokenId);
+  if (!token) return { session, messages: ["No active token."] };
+  const room = roomAtPoint(dungeon, token.floor, token.position);
+  if (!room) return { session, messages: ["Not in a room."] };
+  const result = detectTrap(room, perceptionMod);
+  return { session: { ...session, log: [...session.log, result.message] }, messages: [result.message] };
+}
+
+export function disarmTrapInSession(
+  session: PlaySession,
+  dungeon: DungeonDocument,
+  dexMod: number,
+  profBonus: number
+): PlayActionResult {
+  const token = session.tokens.find((t) => t.id === session.activeTokenId);
+  if (!token) return { session, messages: ["No active token."] };
+  const room = roomAtPoint(dungeon, token.floor, token.position);
+  if (!room) return { session, messages: ["Not in a room."] };
+  const result = disarmTrap(room, dexMod, profBonus);
+  let next = { ...session, log: [...session.log, result.message] };
+  if (result.disarmed) {
+    next = { ...next, disarmedTrapRoomIds: [...next.disarmedTrapRoomIds, room.id] };
+  }
+  return { session: next, messages: [result.message] };
 }

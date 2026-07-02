@@ -3,7 +3,7 @@ import { resolveAttack, startCombat } from "./combat.js";
 describe("startCombat", () => {
   it("orders participants by initiative", () => {
     const state = startCombat({
-      pc: {
+      pcs: [{
         tokenId: "pc1",
         name: "Hero",
         hp: { max: 20, current: 20 },
@@ -13,7 +13,7 @@ describe("startCombat", () => {
         damageType: "slashing",
         initiativeBonus: 2,
         speed: 30,
-      },
+      }],
       monsters: [
         { tokenId: "m1", name: "Goblin", hpMax: 7, armorClass: 15, crNumeric: 0.25 },
       ],
@@ -22,12 +22,23 @@ describe("startCombat", () => {
     expect(state.order).toHaveLength(2);
     expect(state.order[0]!.initiative).toBeGreaterThanOrEqual(state.order[1]!.initiative);
   });
+
+  it("includes multiple PCs", () => {
+    const state = startCombat({
+      pcs: [
+        { tokenId: "pc1", name: "Hero", hp: { max: 20, current: 20 }, armorClass: 16, attackBonus: 5, damage: "1d8", damageType: "slashing", initiativeBonus: 2, speed: 30 },
+        { tokenId: "pc2", name: "Cleric", hp: { max: 18, current: 18 }, armorClass: 15, attackBonus: 4, damage: "1d6", damageType: "bludgeoning", initiativeBonus: 1, speed: 30 },
+      ],
+      monsters: [{ tokenId: "m1", name: "Goblin", hpMax: 7, armorClass: 15, crNumeric: 0.25 }],
+    });
+    expect(state.order.filter((p) => p.kind === "pc")).toHaveLength(2);
+  });
 });
 
 describe("resolveAttack", () => {
   it("applies damage on hit", () => {
     const base = startCombat({
-      pc: {
+      pcs: [{
         tokenId: "pc1",
         name: "Hero",
         hp: { max: 20, current: 20 },
@@ -37,7 +48,7 @@ describe("resolveAttack", () => {
         damageType: "slashing",
         initiativeBonus: 2,
         speed: 30,
-      },
+      }],
       monsters: [
         { tokenId: "m1", name: "Goblin", hpMax: 7, armorClass: 10, crNumeric: 0.25 },
       ],
