@@ -27,6 +27,10 @@ Copy `.env.example` to `.env.local` for optional dev API key (Settings UI prefer
 
 Official CC-licensed PDF: [`docs/srd/SRD_CC_v5.2.1.pdf`](docs/srd/SRD_CC_v5.2.1.pdf)
 
+## Plans
+
+Design and architecture plans live in [`docs/plans/`](docs/plans/README.md) — grill session decisions, V2 implementation spec, and Play mode roadmap.
+
 ## Project Structure
 
 ```
