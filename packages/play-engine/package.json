@@ -1,5 +1,5 @@
 {
-  "name": "@dungeonforge/renderer",
+  "name": "@dungeonforge/play-engine",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@dungeonforge/engine": "*",
-    "@dungeonforge/play-engine": "*"
+    "@dungeonforge/character-engine": "*",
+    "@dungeonforge/rules-engine": "*"
   }
 }

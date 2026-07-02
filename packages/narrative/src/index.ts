@@ -107,3 +107,20 @@ export function buildRoomContext(
     mechanicalSummary: mechanical,
   };
 }
+
+export type {
+  GameIntent,
+  GameIntentType,
+  MoveIntent,
+  AttackIntent,
+  TalkIntent,
+  SearchIntent,
+  UnknownIntent,
+  RulesCapabilities,
+} from "./intent.js";
+export {
+  DEFAULT_CAPABILITIES,
+  parseGameIntent,
+  intentSupported,
+  directionToDelta,
+} from "./intent.js";

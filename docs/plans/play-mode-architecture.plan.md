@@ -7,25 +7,25 @@ todos:
     status: completed
   - id: app-shell-router
     content: Add React Router + TopNav + ForgePage / CharactersPage / PlayPage scaffold
-    status: pending
+    status: completed
   - id: character-engine-v1
     content: 'packages/character-engine: SRD level 1-5 builder + CharacterDocument schema + localStorage save'
-    status: pending
+    status: completed
   - id: play-session-schema
     content: 'packages/play-engine: PlaySession, fog state, token positions on 5ft grid'
-    status: pending
+    status: completed
   - id: renderer-tokens-fog
     content: 'Extend renderer: token sprites, fog-of-war layer, wheel-zoom viewport'
-    status: pending
+    status: completed
   - id: rules-engine-mvp
     content: 'packages/rules-engine: initiative, turn order, action economy, attack vs AC (solo PC)'
-    status: pending
+    status: completed
   - id: play-page-ui
     content: 'Play page layout: map + action rail + character rail + DM chat'
-    status: pending
+    status: completed
   - id: llm-intent-bridge
     content: 'narrative package: parse chat to GameIntent, capability registry, engine-first dispatch'
-    status: pending
+    status: completed
 isProject: false
 ---
 # DungeonForge Play Mode — Navigator vs Extend, Architecture Plan

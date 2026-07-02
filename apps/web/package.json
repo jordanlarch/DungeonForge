@@ -13,8 +13,12 @@
     "@dungeonforge/engine": "*",
     "@dungeonforge/renderer": "*",
     "@dungeonforge/narrative": "*",
+    "@dungeonforge/character-engine": "*",
+    "@dungeonforge/play-engine": "*",
+    "@dungeonforge/rules-engine": "*",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.1.1"
   },
   "devDependencies": {
     "@types/react": "^19.0.2",

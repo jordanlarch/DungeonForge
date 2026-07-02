@@ -36,4 +36,6 @@ export type {
   HazardContent,
   FloorInfo,
   StairLink,
+  Point,
+  Rect,
 } from "./types.js";

@@ -11,6 +11,7 @@ SRD 5.2.1-grounded procedural dungeon generator with an in-browser map editor, c
 - **Themes** — parchment or dark stone
 - **Export** — PNG, SVG, JSON, Markdown
 - **AI narrative** — Anthropic Claude via Settings (key in localStorage only)
+- **Play mode** — Forge / Characters / Play routes with SRD combat v1 (solo PC)
 
 ## Quick Start
 
@@ -42,8 +43,11 @@ packages/
   engine/           Generator + stocking (schema v2)
   renderer/         SVG/PNG map rendering
   narrative/        Template + Anthropic AI provider
+  character-engine/ SRD character builder (levels 1–5)
+  rules-engine/     Initiative, action economy, combat
+  play-engine/      PlaySession, fog, movement, game loop
   cli/              Command-line generator
-apps/web/           Generator + editor UI
+apps/web/           Forge, Characters, and Play UI
 ```
 
 ## Security

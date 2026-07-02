@@ -12,7 +12,7 @@
     "build:srd": "python3 scripts/build-srd-data.py",
     "dev": "npm run dev -w @dungeonforge/web",
     "generate": "npm run generate -w @dungeonforge/cli",
-    "test": "npm run test -w @dungeonforge/engine",
+    "test": "npm run test -w @dungeonforge/engine && npm run test -w @dungeonforge/rules-engine",
     "typecheck": "npm run typecheck -w @dungeonforge/engine && npm run typecheck -w @dungeonforge/web"
   },
   "engines": {

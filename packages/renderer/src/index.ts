@@ -1,4 +1,5 @@
 import type { DungeonDocument, MapTheme, RoomNode } from "@dungeonforge/engine";
+import type { FogVisibility, GridToken } from "@dungeonforge/play-engine";
 
 export interface RenderTheme {
   background: string;
@@ -45,6 +46,9 @@ export interface RenderOptions {
   theme?: MapTheme;
   activeFloor?: number;
   selectedRoomId?: string | null;
+  tokens?: GridToken[];
+  fog?: Record<string, FogVisibility>;
+  showFog?: boolean;
 }
 
 const DEFAULT_PPF = 10;
@@ -101,8 +105,33 @@ export function renderDungeonSvg(
     svg += `<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="middle" fill="${theme.label}" font-size="${cell * 0.9}" font-family="serif">${room.number}</text>`;
   }
 
+  if (opts.showFog && opts.fog) {
+    for (let y = 0; y < dungeon.grid.height; y++) {
+      for (let x = 0; x < dungeon.grid.width; x++) {
+        const key = `${x},${y}`;
+        const vis = opts.fog[key] ?? "hidden";
+        if (vis === "visible") continue;
+        const opacity = vis === "hidden" ? 0.92 : 0.55;
+        svg += `<rect x="${x * cell}" y="${y * cell}" width="${cell}" height="${cell}" fill="#000000" opacity="${opacity}"/>`;
+      }
+    }
+  }
+
+  const tokens = (opts.tokens ?? []).filter((t) => t.floor === floor);
+  for (const token of tokens) {
+    const cx = token.position.x * cell + cell / 2;
+    const cy = token.position.y * cell + cell / 2;
+    const r = cell * 0.35;
+    svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${token.color}" stroke="#fff" stroke-width="2"/>`;
+    svg += `<text x="${cx}" y="${cy - r - 4}" text-anchor="middle" fill="${theme.label}" font-size="${cell * 0.35}" font-family="sans-serif">${escapeXml(token.name.slice(0, 8))}</text>`;
+  }
+
   svg += `</svg>`;
   return svg;
+}
+
+function escapeXml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 export function roleColor(role: RoomNode["content"]["role"]): string {
